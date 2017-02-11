@@ -1,0 +1,1 @@
+Only hosts slimes as is. Needs viramate for hotkeys because I'm lazy.
