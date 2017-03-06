@@ -1,7 +1,9 @@
 # TODO
-## Code
-* **It's in a mess, clean it up!!**
+## General
+* **Code's in a mess, clean it up!!**
 * Fix popup_check()
+* Check if already casting a summon before attempting to summon 
+* Don't search for OK in the results page because we might have dismissed it 
 
 ### Coop routine
 * If someone else hosts just ready
