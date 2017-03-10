@@ -1,4 +1,6 @@
 # Project specific
+/chrome-win32
+/profile
 *.log
 setup.cfg
 
