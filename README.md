@@ -1,8 +1,8 @@
 Only hosts slimes as is. Needs viramate for hotkeys because I'm lazy.
 # Installation
-pip install selenium
-chrome webdriver https://sites.google.com/a/chromium.org/chromedriver/downloads
-chromium (or whatever works for you)
+* pip install selenium
+* chrome webdriver https://sites.google.com/a/chromium.org/chromedriver/downloads
+* chromium (or whatever works for you)
 
 # TODO
 
