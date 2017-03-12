@@ -2,6 +2,7 @@
 /chrome-win32
 /profile
 *.log
+*.exe
 setup.cfg
 
 # Windows image file caches

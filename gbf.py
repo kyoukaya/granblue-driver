@@ -1,12 +1,10 @@
-from datetime import datetime
 from time import sleep, time as time_now, strftime
-from os.path import abspath
+from os import path, makedirs
 from random import randint, uniform
 from selenium import webdriver
 from selenium.common.exceptions import (TimeoutException,
                                         NoSuchElementException,
                                         StaleElementReferenceException,
-                                        WebDriverException,
                                         UnexpectedAlertPresentException)
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
@@ -16,7 +14,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 
 from pushbullet import InvalidKeyError, Pushbullet
 
-LOG_FILE = '.\\log\\[%s] GBFDriver.log' % (strftime('%m-%d %H%M'))
+LOG_FILE = '[%s] GBFDriver.log' % (strftime('%m-%d %H%M'))
 HOTKEYS = ['q', 'w', 'e', 'r', 't', 'y']
 USE_PB = False
 API_KEY = {
@@ -24,18 +22,23 @@ API_KEY = {
 }
 
 OPTIONS = webdriver.ChromeOptions()
-PROFILE = abspath('.\\profile')
+PROFILE = path.abspath('.\\profile')  # Specify different paths if running 2 instances
 OPTIONS.add_argument('user-data-dir=%s' % PROFILE)
 OPTIONS.binary_location = '.\\chrome-win32\\chrome.exe'
-GBF = webdriver.Chrome(chrome_options=OPTIONS)
+GBF = webdriver.Chrome(executable_path='.\\chromedriver.exe', chrome_options=OPTIONS)
 
 
 def log(message):
     '''Prints to console and outputs to log file'''
-    with open(LOG_FILE, 'a', encoding='utf-8', newline='') as fout:
-        message = '[%s] %s' % (strftime('%a %H:%M:%S'), message)
-        print(message)
-        fout.write(message + '\n')
+    try:
+        with open('.\\logs\\'+LOG_FILE, 'a', encoding='utf-8', newline='') as fout:
+            message = '[%s] %s' % (strftime('%a %H:%M:%S'), message)
+            print(message)
+            fout.write(message + '\n')
+    except FileNotFoundError:
+        makedirs('.\\logs')
+        log('Created log folder')
+        log(message)
 
 
 def alert_operator(message, pause=True):
@@ -63,8 +66,6 @@ def set_viewport_size(driver, width, height):
 def random_click(ele, var_x, var_y):
     clicked = False
     while not clicked:
-        log('Element at: %d, %d' % (ele.location['x'], ele.location['y']))
-        log('Clicking %s with variance X: %d, Y: %d' % (ele, var_x, var_y))
         actions = ActionChains(GBF)
         actions.move_to_element(ele).move_by_offset(var_x, var_y).click_and_hold().perform()
         sleep(uniform(0.05, 0.15))
@@ -75,19 +76,17 @@ def random_click(ele, var_x, var_y):
 def java_click(ele, var_x, var_y):
     '''In the off case we might not want to use the default way of clicking things'''
     ele_loc = ele.location
-    ele_loc_x = ele_loc['x']
-    ele_loc_y = ele_loc['y']
-    log('%d, %d' % (ele_loc_x, ele_loc_y))
-    log('Clicking %s using javascript with variance X: %d, Y: %d' % (ele, var_x, var_y))
+    ele_loc_x = ele_loc['x']+var_x
+    ele_loc_y = ele_loc['y']+var_y
     script = 'document.elementFromPoint(%s,%s).click();' % (ele_loc_x, ele_loc_y)
     GBF.execute_script(script)
 
 
-def clicker(ele, delay=0.5, kind='random', variance=3):
+def clicker(ele, delay=0.5, kind='random', variance=.5):
     '''Takes a CSS selector in the form of a CSS selector/xpath string or an element object
-    and clicks on it.
-    Additional arguments (delay, kind, variance)'''
+    and clicks on it.'''
     if isinstance(ele, str) and ele_check(ele):
+        log('Clicking on \'%s\'. Method: %s, variance: %.5s' % (ele, kind, str(variance)))
         if ele[0] == '/':
             ele = GBF.find_element_by_xpath(ele)
         else:
@@ -96,11 +95,15 @@ def clicker(ele, delay=0.5, kind='random', variance=3):
         log('Element does not exist: %s' % ele)
         return
     if delay > 0:
-        delay = uniform(1.25 * delay, 0.75 * delay)
+        # Shouldn't really matter but it helps us to not spam clicks when stuck in loops
+        delay = uniform(delay, 0.5 * delay)
         sleep(delay)
-    var_x = randint(0 - variance, variance)
-    var_y = randint(0 - variance, variance)
     try:
+        # Variance routine
+        size = {k: int(ele.size[k]/(2/variance)) for k in ele.size}
+        var_x = randint(0 - size['width'], size['width'])
+        var_y = randint(0 - size['height'], size['height'])
+        log('%s, %d, %d' % (ele.size, var_x, var_y))
         # Handle potential errors that arise from non-existent elements
         if kind == 'random':
             random_click(ele, var_x, var_y)
@@ -119,6 +122,18 @@ def clicker(ele, delay=0.5, kind='random', variance=3):
         log('%s\nAlert detected, dismissing' % exp)
         GBF.switch_to_alert().accept()
         clicker(ele, delay, kind, variance)
+
+
+def send_keys_to_element(ele, keys):
+    if isinstance(ele, str) and ele_check(ele):
+        if ele[0] == '/':
+            ele = GBF.find_element_by_xpath(ele)
+        else:
+            ele = GBF.find_element_by_css_selector(ele)
+    elif isinstance(ele, str):
+        log('Element does not exist: %s' % ele)
+        return
+    ele.send_keys(keys)
 
 
 def ele_check(ele, wait=1):
@@ -156,14 +171,12 @@ def wait_until_css(css, maxwait=5):
 
 def load_page(url, wait_for='', ignore_url=False):
     GBF.get(url)
-    sleep(0.1)
+    sleep(0.3)  # Not entirely sure how we should detect redirects...
     if GBF.current_url != url and not ignore_url:
         message = 'Unexpected URL: %s' % (GBF.current_url)
         log(message)
-        alert_operator(message)
-        load_page(url, wait_for)
     if wait_for != '':
-        wait_until_css(wait_for)
+        wait_until_css(wait_for, maxwait=2)
 
 
 def skill_check():
@@ -184,6 +197,7 @@ def skill_check():
 
 
 def do_skill(character, skill, target=-1):
+    # Viramate dependency
     available = skill_check()
     if not available[character][skill]:
         log('Character %s\'s skill %s is unavailable.' % (character, skill))
@@ -237,6 +251,7 @@ def ougi_check():
 
 
 def set_ougi(ougi):
+    # Viramate dependency
     while ougi != ougi_check():
         actions = ActionChains(GBF)
         actions.send_keys('c').perform()
@@ -374,12 +389,12 @@ def coop_lobby():
             create_coop_lobby()
         elif 'http://game.granbluefantasy.jp/#coopraid/room/' not in c_url:
             return
-        if ele_check('.btn-make-ready-large.not-ready', wait=0.1):
+        if ele_check('.btn-make-ready-large.not-ready', wait=0):
             # We'll try to handle party and summon selection someday
             alert_operator('Please choose a summon')
-        if ele_check(target, wait=0.1):
+        if ele_check(target, wait=0):
             clicker(target)
-        if ele_check(target2, wait=0.1):
+        if ele_check(target2, wait=0):
             clicker(target2)
             sleep(0.5)
             popup_check()
@@ -396,11 +411,12 @@ def top_page():
 
 
 def authentication_page():
-    clicker('//*[@id=\'gree-login\']')
+    clicker('//*[@id="gree-login"]/img')
+    # clicker('//*[@id="mobage-login"]/img')
+    # clicker('//*[@id="dmm-login"]/img')
 
 
 def wait_for_page_load():
-    log("Waiting for page load...")
     start_time = time_now()
     while True:
         if GBF.execute_script('return document.readyState;') == 'complete':
@@ -420,16 +436,33 @@ def main_loop():
         if 'http://game.granbluefantasy.jp/#coopraid' in cur_url:
             coop_lobby()
             popup_check()  # Checks for CAPTCHAs and weird stuff after we hit the start button
-        elif 'http://game.granbluefantasy.jp/#raid_multi/' in cur_url:
+        elif 'http://game.granbluefantasy.jp/#raid_multi' in cur_url:
             raid_battle()
-        elif 'http://game.granbluefantasy.jp/#result_multi/' in cur_url:
+        elif 'http://game.granbluefantasy.jp/#result_multi' in cur_url:
             rounds = results_page(homepage, target, rounds)
         elif 'http://game.granbluefantasy.jp/#top' in cur_url:
             top_page()
         elif 'http://game.granbluefantasy.jp/#authentication' in cur_url:
             authentication_page()
+        elif 'loginbonus' in cur_url:
+            clicker('.cjs-login')
         else:
             load_page(homepage, target, ignore_url=True)
+
+
+def dispatcher(tasklist):
+    '''Takes a list/tuple of tasks and runs through them with suitable fallback responses'''
+    wait_for_page_load()
+    for task in tasklist:
+        args = None
+        if isinstance(task, list, tuple):
+            task = task[0]
+            args = task[1]
+        response = task
+        if response:
+            log('{} has failed'.format(task))
+            if args is not None:
+                dispatcher(list((task, args)))
 
 
 if __name__ == '__main__':
@@ -437,8 +470,6 @@ if __name__ == '__main__':
     set_viewport_size(GBF, 400, 600)
     try:
         main_loop()
-    except WebDriverException:
-        log('Chrome exited')
-        quit()
     except Exception as exp:
         alert_operator('Fatal exception has occured, bot terminating\n%s' % exp)
+        raise
