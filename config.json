@@ -1,0 +1,36 @@
+{
+    "viramate_hotkeys": ["q", "w", "e", "r", "t", "y"],
+    "use_pb": false,
+    "chrome_profiles": [
+        ".\\profiles\\profile",
+        ".\\profiles\\profile1",
+        ".\\profiles\\profile2"
+        ],
+    "chrome_binary": ".\\chrome-win32\\chrome.exe",
+    "webdriver_binary": ".\\chromedriver.exe",
+    "keys": {
+        "pushbullet": "",
+        "twitter":{
+            "consumer_key": null,
+            "consumer_secret": null,
+            "access_token": null,
+            "access_token_secret": null
+        }
+    },
+    "tasklist":[
+        {
+            "task": "do_this_thing",
+            "args": ["arg1", "arg2"],
+            "opt": {
+                "kwarg1": 0,
+                "kwarg2": 1,
+                "piss": "wasser"
+            }
+        },
+        {
+            "task": "do_that_thing",
+            "args": [1, 2, 3],
+            "opt": {}
+        }
+    ]
+}
