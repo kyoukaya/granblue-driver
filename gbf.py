@@ -2,20 +2,17 @@ import json
 from os import makedirs, path
 from random import randint, uniform
 from selenium import webdriver
-from selenium.common.exceptions import (NoSuchElementException,
-                                        StaleElementReferenceException,
-                                        TimeoutException,
-                                        UnexpectedAlertPresentException)
+from selenium.common.exceptions import *
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 from time import sleep, strftime, time
-from code import interact
-
+import code
 from pushbullet import InvalidKeyError, Pushbullet
-from seleniumrequests import Chrome
+import seleniumrequests
+
 
 CFG = json.load(open('config.json', 'r', encoding='utf-8'))
 HOTKEYS = CFG['viramate_hotkeys']
@@ -42,17 +39,15 @@ def setup_driver_instance():
     chrome_binary = CFG['chrome_binary']
     webdriver_binary = CFG['webdriver_binary']
 
-    print(f'''Config loaded...
-PB: {PB_KEY}, USE_PB: {USE_PB}, HOTKEYS: {HOTKEYS}, PROFILE: {profile}
-chrome_binary: {chrome_binary}, webdriver_binary: {webdriver_binary}
-''')
+    print(f'Config loaded...\nPB: {PB_KEY}, USE_PB: {USE_PB}, HOTKEYS: {HOTKEYS}, PROFILE: {profile}\
+    \nchrome_binary: {chrome_binary}, webdriver_binary: {webdriver_binary}\n')
 
     options = webdriver.ChromeOptions()
     profile = path.abspath(profile)
     log(f'Profile path: {profile}')
     options.add_argument('user-data-dir={}'.format(profile))
     options.binary_location = '.\\chrome-win32\\chrome.exe'
-    gbf = Chrome(executable_path='.\\chromedriver.exe', chrome_options=options)
+    gbf = chromedriver(executable_path='.\\chromedriver.exe', chrome_options=options)
     return gbf
 
 
@@ -78,12 +73,82 @@ def set_viewport_size(driver, width, height):
     driver.set_window_size(*window_size)
 
 
+def ele_check(ele, wait=1):
+    try:
+        if ele[0] == '/':  # If input is a xpath string check using xpath
+            WebDriverWait(GBF, wait, poll_frequency=0.10).until(
+                EC.visibility_of_element_located((By.XPATH, ele))
+            )
+            return True
+        else:  # Else treat it as a CSS selector
+            WebDriverWait(GBF, wait, poll_frequency=0.10).until(
+                EC.visibility_of_element_located((By.CSS_SELECTOR, ele))
+            )
+            return True
+    except TimeoutException:
+        return False
+    except UnexpectedAlertPresentException as exp:
+        log('{}\nAlert detected, dismissing'.format(exp))
+        GBF.switch_to_alert().accept()
+        return ele_check(ele)
+
+
+def wait_until_css(css, maxwait=5):
+    log('Waiting for {} for {} seconds'.format(css, maxwait))
+    waiting = True
+    start = time()
+    while waiting:
+        if ele_check(css):
+            return True
+        else:
+            if (time() - start) > maxwait:
+                log('Timed out')
+                return False
+
+
+def wait_for_page_load(polling_rate=0.1):
+    """Wait for the document state to be ready and for jQuery to return 0 active connections.
+    Returns True if page is loaded and False if it timed out after waiting 5 seconds.
+    If there's a need for speed :tm:, set polling_rate to 0"""
+    counter = 0
+    start_time = time()
+    while (time() - start_time) < 5:
+        counter += 1
+        try:
+            print(time()-start_time)
+            if GBF.execute_script('return document.readyState==="complete"&&\
+                                   jQuery.active===0'):
+                return True
+        except WebDriverException as message:
+            if 'jQuery is not defined' in str(message):
+                # log('Attempted to use a jQuery method without the lib being loaded lol..')
+                continue
+            else:
+                log('Something is up yo...')
+                raise
+        finally:
+            sleep(polling_rate)
+    log('Timed out while waiting for page to load...')
+    return False
+
+
+def load_page(url, wait_for='', ignore_url=False):
+    GBF.get(url)
+    wait_for_page_load()  # Not entirely sure how we should detect redirects...
+    if GBF.current_url != url and not ignore_url:
+        message = 'Unexpected URL: {}'.format(GBF.current_url)
+        alert_operator(message)
+        log(message)
+    if wait_for != '':
+        wait_until_css(wait_for, maxwait=2)
+
+
 def random_click(ele, var_x, var_y):
     clicked = False
     while not clicked:
         actions = ActionChains(GBF)
         actions.move_to_element(ele).move_by_offset(var_x, var_y).click_and_hold().perform()
-        sleep(uniform(0.05, 0.15))
+        sleep(uniform(0.05, 0.075))
         actions.release().perform()
         clicked = True
 
@@ -97,9 +162,9 @@ def js_click(ele, var_x, var_y):
     GBF.execute_script(script)
 
 
-def clicker(ele, delay=0.5, kind='random', variance=0.2):
+def clicker(ele, delay=0.1, kind='random', variance=0.2):
     """Takes a CSS selector in the form of a CSS selector/xpath string or an element object
-    and clicks on it."""
+    and clicks on it. Returns True if clicked and False if not clicked."""
     if isinstance(ele, str) and ele_check(ele):
         log('Clicking on \'{}\'. Method: {}, variance: {}'.format(ele, kind, variance))
         if ele[0] == '/':
@@ -129,10 +194,13 @@ def clicker(ele, delay=0.5, kind='random', variance=0.2):
             # Simulate a click in javascript
             js_click(ele, var_x, var_y)
         elif kind == 'fallback':
-            # Can't introduce click variance with native methods
+            # Can't introduce click variance
             ele.click()
         else:
             log('Invalid kind \'{}\' inputted!'.format(kind))
+            raise Exception('Invalid kind \'{}\' inputted!'.format(kind))
+        # Return True if no exceptions occured
+        return True
     except (StaleElementReferenceException, NoSuchElementException):
         log('Element does not exist')
         return False
@@ -152,50 +220,6 @@ def send_keys_to_element(ele, keys):
         log('Element does not exist: {}'.format(ele))
         return
     ele.send_keys(keys)
-
-
-def ele_check(ele, wait=1):
-    try:
-        if ele[0] == '/':
-            WebDriverWait(GBF, wait, poll_frequency=0.10).until(
-                EC.visibility_of_element_located((By.XPATH, ele))
-            )
-            return True
-        else:
-            WebDriverWait(GBF, wait, poll_frequency=0.10).until(
-                EC.visibility_of_element_located((By.CSS_SELECTOR, ele))
-            )
-            return True
-    except TimeoutException:
-        return False
-    except UnexpectedAlertPresentException as exp:
-        log('{}\nAlert detected, dismissing'.format(exp))
-        GBF.switch_to_alert().accept()
-        return ele_check(ele)
-
-
-def wait_until_css(css, maxwait=5):
-    log('Waiting for {} for {} seconds'.format(css, maxwait))
-    waiting = True
-    start = time()
-    while waiting:
-        if ele_check(css):
-            return True
-        else:
-            if (time() - start) > maxwait:
-                log('Timed out')
-                return False
-
-
-def load_page(url, wait_for='', ignore_url=False):
-    GBF.get(url)
-    sleep(0.3)  # Not entirely sure how we should detect redirects...
-    if GBF.current_url != url and not ignore_url:
-        message = 'Unexpected URL: {}'.format(GBF.current_url)
-        alert_operator(message)
-        log(message)
-    if wait_for != '':
-        wait_until_css(wait_for, maxwait=2)
 
 
 def skill_check():
@@ -441,16 +465,6 @@ def authentication_page():
     # clicker('//*[@id="dmm-login"]/img')
 
 
-def wait_for_page_load():
-    start_time = time()
-    while True:
-        if GBF.execute_script('return document.readyState;') == 'complete':
-            return
-        elif (time() - start_time) > 5:
-            log('Timed out while waiting for page to load...')
-            return
-
-
 def play_poker():
     """Poker routine adapted from https://github.com/shengdi/granblue-selenium
     Only works on the small setting of the game as the clicks to hold cards is hardcoded"""
@@ -627,8 +641,18 @@ def loop_poker():
     alert_operator('Bot done')
 
 
-def main_loop():
-    # We should go to http://game.granbluefantasy.jp/#top first and check if we need to log in
+def test_for_auth():
+    """To check if we're logged in we should load mypage, and click on the top button. Once on
+    /#top we'll check if there's the continue or home button and carry on logging in if necessary"""
+    load_page('http://game.granbluefantasy.jp/#mypage', ignore_url=True)
+    if GBF.current_url == 'http://game.granbluefantasy.jp/#mypage':
+        clicker('.btn-head-top')
+        wait_for_page_load()
+    pass
+
+
+def task_loop():
+    """Takes a task from the dispatcher and carries it out"""
     homepage = 'http://game.granbluefantasy.jp/#coopraid'
     target = '.prt-head-current'
     rounds = 0
@@ -695,9 +719,7 @@ if __name__ == '__main__':
     GBF = setup_driver_instance()
     load_page('http://game.granbluefantasy.jp/#authentication', ignore_url=True)
     set_viewport_size(GBF, 400, 600)
-    sleep(1)
-    # Need to make a function to automatically log in... Load #mypage > click top > check url >
-    # log in | continue on with the script
+    test_for_auth()
     if GBF.current_url == 'http://game.granbluefantasy.jp/#authentication':
         authentication_page()
     try:
