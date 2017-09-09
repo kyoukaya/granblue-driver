@@ -1,0 +1,362 @@
+{
+    "Griffin N": {
+        "EN": "Lvl 20 Griffin",
+        "JP": "Lv20 グリフォン",
+        "loc": "/300011/1"
+    },
+    "Flame N": {
+        "EN": "Lvl 20 Zarchnal Flame",
+        "JP": "Lv20 ザリチュナルフレイム",
+        "loc": "/300061/1"
+    },
+    "Guard N": {
+        "EN": "Lvl 30 Imperial Guard",
+        "JP": "Lv30 インペリアルガード",
+        "loc": "/300111/1"
+    },
+    "Griffin H": {
+        "EN": "Lvl 30 Griffin",
+        "JP": "Lv30 グリフォン",
+        "loc": "/300021/1"
+    },
+    "Flame H": {
+        "EN": "Lvl 30 Zarchnal Flame",
+        "JP": "Lv30 ザリチュナルフレイム",
+        "loc": "/300071/1"
+    },
+    "Guard H": {
+        "EN": "Lvl 30 Imperial Guard",
+        "JP": "Lv30 インペリアルガード",
+        "loc": "/300121/1"
+    },
+    "Dragon H": {
+        "EN": "Lvl 30 Ancient Dragon",
+        "JP": "Lv30 エンシェントドラゴン",
+        "loc": "/300171/1"
+    },
+    "Wisp H": {
+        "EN": "Lvl 30 Will-o'-Wisp",
+        "JP": "Lv30 ウィル･オ･ウィスプ",
+        "loc": "/300201/1"
+    },
+    "Eye H": {
+        "EN": "Lvl 30 Evil Eye",
+        "JP": "Lv30 イービルアイ",
+        "loc": "/300231/1"
+    },
+    "Tiamat N": {
+        "EN": "Lvl 30 Tiamat",
+        "JP": "Lv30 ティアマト",
+        "loc": "/300031/1"
+    },
+    "Colossus N": {
+        "EN": "Lvl 30 Colossus",
+        "JP": "Lv30 コロッサス",
+        "loc": "/300081/1"
+    },
+    "Leviathan N": {
+        "EN": "Lvl 30 Leviathan",
+        "JP": "Lv30 リヴァイアサン",
+        "loc": "/300141/1"
+    },
+    "Yggdrasil N": {
+        "EN": "Lvl 30 Yggdrasil",
+        "JP": "Lv30 ユグドラシル",
+        "loc": "/300181/1"
+    },
+    "Adversa N": {
+        "EN": "Lvl 30 Adversa",
+        "JP": "Lv30 アドウェルサ",
+        "loc": "/300211/1"
+    },
+    "Celeste N": {
+        "EN": "Lvl 30 Celeste",
+        "JP": "Lv30 セレスト",
+        "loc": "/300241/1"
+    },
+    "Tiamat H": {
+        "EN": "Lv50 ティアマト",
+        "JP": "Lvl 50 Tiamat",
+        "loc": "/300041/1"
+    },
+    "Colossus H": {
+        "EN": "Lvl 50 Colossus",
+        "JP": "Lv50 コロッサス",
+        "loc": "/300091/1"
+    },
+    "Leviathan H": {
+        "EN": "Lvl 50 Leviathan",
+        "JP": "Lv50 リヴァイアサン",
+        "loc": "/300151/1"
+    },
+    "Yggdrasil H": {
+        "EN": "Lvl 50 Yggdrasil",
+        "JP": "Lv50 ユグドラシル",
+        "loc": "/300191/1"
+    },
+    "Adversa H": {
+        "EN": "Lvl 50 Adversa",
+        "JP": "Lv50 アドウェルサ",
+        "loc": "/300221/1"
+    },
+    "Celeste H": {
+        "EN": "Lvl 50 Celeste",
+        "JP": "Lv50 セレスト",
+        "loc": "/300251/1"
+    },
+    "Tiamat M": {
+        "EN": "Lvl 50 Tiamat Omega",
+        "JP": "Lv50 ティアマト・マグナ",
+        "loc": "/300051/1/0/18"
+    },
+    "Leviathan M": {
+        "EN": "Lvl 60 Leviathan Omega",
+        "JP": "Lv60 リヴァイアサン・マグナ",
+        "loc": "/300161/1/0/20"
+    },
+    "Yggdrasil M": {
+        "EN": "Lvl 60 Yggdrasil Omega",
+        "JP": "Lv60 ユグドラシル・マグナ",
+        "loc": "/300261/1/0/21"
+    },
+    "Colossus M": {
+        "EN": "Lvl 70 Colossus Omega",
+        "JP": "Lv70 コロッサス・マグナ",
+        "loc": "/300101/1/0/19"
+    },
+    "Luminiera M": {
+        "EN": "Lvl 75 Luminiera Omega",
+        "JP": "Lv75 シュヴァリエ・マグナ",
+        "loc": "/300271/1/0/26"
+    },
+    "Celeste M": {
+        "EN": "Lvl 75 Celeste Omega",
+        "JP": "Lv75 セレスト・マグナ",
+        "loc": "/300281/1/0/31"
+    },
+    "4b Agni": {
+        "EN": "Lvl 90 Agni",
+        "JP": "Lv90 アグニス",
+        "loc": ""
+    },
+    "4b Zephyrus": {
+        "EN": "Lvl 90 Zephyrus",
+        "JP": "Lv90 ゼピュロス",
+        "loc": ""
+    },
+    "4b Titan": {
+        "EN": "Lvl 90 Titan",
+        "JP": "Lv90 ティターン",
+        "loc": ""
+    },
+    "4b Neptune": {
+        "EN": "Lvl 90 Neptune",
+        "JP": "Lv90 ネプチューン",
+        "loc": ""
+    },
+    "Nezha": {
+        "EN": "Lvl 100 Nezha",
+        "JP": "Lv100 ナタク",
+        "loc": ""
+    },
+    "Twin Elements": {
+        "EN": "Lvl 100 Twin Elements",
+        "JP": "Lv100 フラム＝グラス",
+        "loc": ""
+    },
+    "Macula": {
+        "EN": "Lvl 100 Macula Marius",
+        "JP": "Lv100 マキュラ・マリウス",
+        "loc": ""
+    },
+    "Medusa": {
+        "EN": "Lvl 100 Medusa",
+        "JP": "Lv100 メドゥーサ",
+        "loc": ""
+    },
+    "Apollo": {
+        "EN": "Lvl 100 Apollo",
+        "JP": "Lv100 アポロン",
+        "loc": ""
+    },
+    "DAO": {
+        "EN": "Lvl 100 Dark Angel Olivia",
+        "JP": "Lv100 Dエンジェル・オリヴィエ",
+        "loc": ""
+    },
+    "Garuda": {
+        "EN": "Lvl 100 Garuda",
+        "JP": "Lv100 ガルーダ",
+        "loc": ""
+    },
+    "Athena": {
+        "EN": "Lvl 100 Athena",
+        "JP": "Lv100 アテナ",
+        "loc": ""
+    },
+    "Grani": {
+        "EN": "Lvl 100 Grani",
+        "JP": "Lv100 グラニ",
+        "loc": ""
+    },
+    "Baal": {
+        "EN": "Lvl 100 Baal",
+        "JP": "Lv100 バアル",
+        "loc": ""
+    },
+    "Odin": {
+        "EN": "Lvl 100 Odin",
+        "JP": "Lv100 オーディン",
+        "loc": ""
+    },
+    "Lich": {
+        "EN": "Lvl 100 Lich",
+        "JP": "Lv100 リッチ",
+        "loc": ""
+    },
+    "Bahamut": {
+        "EN": "Lvl 100 Proto Bahamut",
+        "JP": "Lv100 プロトバハムート",
+        "loc": ""
+    },
+    "GO": {
+        "EN": "Lvl 100 Grand Order",
+        "JP": "Lv100 ジ・オーダー・グランデ",
+        "loc": ""
+    },
+    "Huanglong": {
+        "EN": "Lvl 100 Huanglong",
+        "JP": "Lv100 黄龍",
+        "loc": ""
+    },
+    "Qilin": {
+        "EN": "Lvl 100 Qilin",
+        "JP": "Lv100 黒麒麟",
+        "loc": ""
+    },
+    "Uriel": {
+        "EN": "Lvl 100 Uriel",
+        "JP": "Lv100 ウリエル",
+        "loc": ""
+    },
+    "Gabriel": {
+        "EN": "Lvl 100 Gabriel",
+        "JP": "Lv100 ガブリエル",
+        "loc": ""
+    },
+    "Michael": {
+        "EN": "Lvl 100 Michael",
+        "JP": "Lv100 ミカエル",
+        "loc": ""
+    },
+    "Raphael": {
+        "EN": "Lvl 100 Raphael",
+        "JP": "Lv100 ラファエル",
+        "loc": ""
+    },
+    "Tiamat HL": {
+        "EN": "Lvl 100 Tiamat Omega Ayr",
+        "JP": "Lv100 ティアマト・マグナ＝エア",
+        "loc": ""
+    },
+    "Colossus HL": {
+        "EN": "Lvl 100 Colossus Omega",
+        "JP": "Lv100 コロッサス・マグナ",
+        "loc": ""
+    },
+    "Leviathan HL": {
+        "EN": "Lvl 100 Leviathan Omega",
+        "JP": "Lv100 リヴァイアサン・マグナ",
+        "loc": ""
+    },
+    "Yggdrasil HL": {
+        "EN": "Lvl 100 Yggdrasil Omega",
+        "JP": "Lv100 ユグドラシル・マグナ",
+        "loc": ""
+    },
+    "Luminiera HL": {
+        "EN": "Lvl 100 Luminiera Omega",
+        "JP": "Lv100 シュヴァリエ・マグナ",
+        "loc": ""
+    },
+    "Celeste HL": {
+        "EN": "Lvl 100 Celeste Omega",
+        "JP": "Lv100 セレスト・マグナ",
+        "loc": ""
+    },
+    "RQ HL": {
+        "EN": "Lvl 110 Rose Queen",
+        "JP": "Lv110 ローズクイーン",
+        "loc": ""
+    },
+    "Nezha HL": {
+        "EN": "Lvl 120 Nezha",
+        "JP": "Lv120 ナタク",
+        "loc": ""
+    },
+    "Twin Elements HL": {
+        "EN": "Lvl 120 Twin Elements",
+        "JP": "Lv120 フラム＝グラス",
+        "loc": ""
+    },
+    "Macula HL": {
+        "EN": "Lvl 120 Macula Marius",
+        "JP": "Lv120 マキュラ・マリウス",
+        "loc": ""
+    },
+    "Medusa HL": {
+        "EN": "Lvl 120 Medusa",
+        "JP": "Lv120 メドゥーサ",
+        "loc": ""
+    },
+    "Apollo HL": {
+        "EN": "Lvl 120 Apollo",
+        "JP": "Lv120 アポロン",
+        "loc": ""
+    },
+    "DAO HL": {
+        "EN": "Lvl 120 Dark Angel Olivia",
+        "JP": "Lv120 Dエンジェル・オリヴィエ",
+        "loc": ""
+    },
+    "Morrigna HL": {
+        "EN": "Lvl 120 Morrigna",
+        "JP": "Lv120 バイヴカハ",
+        "loc": ""
+    },
+    "Prometheus HL": {
+        "EN": "Lvl 120 Prometheus",
+        "JP": "Lv120 プロメテウス",
+        "loc": ""
+    },
+    "Ca Ong HL": {
+        "EN": "Lvl 120 Ca Ong",
+        "JP": "Lv120 カー・オン",
+        "loc": ""
+    },
+    "Gilgamesh HL": {
+        "EN": "Lvl 120 Gilgamesh",
+        "JP": "Lv120 ギルガメッシュ",
+        "loc": ""
+    },
+    "Hector HL": {
+        "EN": "Lvl 120 Hector",
+        "JP": "Lv120 ヘクトル",
+        "loc": ""
+    },
+    "Anubis HL": {
+        "EN": "Lvl 120 Anubis",
+        "JP": "Lv120 アヌビス",
+        "loc": ""
+    },
+    "Bahamut HL": {
+        "EN": "Lvl 150 Proto Bahamut",
+        "JP": "Lv150 プロトバハムート",
+        "loc": ""
+    },
+    "": {
+        "EN": "",
+        "JP": "",
+        "loc": ""
+    }
+}
