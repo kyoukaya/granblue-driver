@@ -12,6 +12,6 @@ Temp
 * --hostslime, --leechslime, --debug (start script in interactive mode)
 
 # Installation
-* pip install requirements.txt
+* pip install -r requirements.txt
 * place [chrome webdriver](https://sites.google.com/a/chromium.org/chromedriver/downloads) binary in the folder
 * chromium (or whatever works for you)
