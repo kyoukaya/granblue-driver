@@ -47,14 +47,19 @@ def setup_driver_instance():
 
     print(f'Config loaded...\nPB: {PB_KEY}, USE_PB: {USE_PB}, HOTKEYS: {HOTKEYS}, PROFILE: {profile}\
     \nchrome_binary: {chrome_binary}, webdriver_binary: {webdriver_binary}\n')
-
     options = webdriver.ChromeOptions()
     profile = path.abspath(profile)
     log(f'Profile path: {profile}')
     options.add_argument('user-data-dir={}'.format(profile))
     options.add_argument('--disable-infobars')
     options.binary_location = '.\\chrome-win32\\chrome.exe'
-    gbf = webdriver.Chrome(executable_path='.\\chromedriver.exe', chrome_options=options)
+
+    # Default to installed chrome binary if custom binary does not exist
+    try:
+        gbf = webdriver.Chrome(executable_path='.\\chromedriver.exe', chrome_options=options)
+    except WebDriverException:
+        options.binary_location = ''
+        gbf = webdriver.Chrome(executable_path='.\\chromedriver.exe', chrome_options=options)
     return gbf
 
 
@@ -486,7 +491,7 @@ def coop_lobby():
             popup_check()
             sleep(0.5)
             return
-        if (time() - start) > 10:
+        if (time() - start) > 5:
             # Refresh the room after awhile because it likes to get stuck
             GBF.refresh()
             return
