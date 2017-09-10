@@ -1,15 +1,12 @@
 
 import argparse
 import json
-import logging
 from os import makedirs, path
 from random import randint, uniform
 from time import sleep, strftime, time
 
-import seleniumrequests
 from pushbullet import InvalidKeyError, Pushbullet
 
-from gbfdriver import GBFdriver
 from selenium import webdriver
 from selenium.common.exceptions import *
 from selenium.webdriver.common.action_chains import ActionChains
@@ -24,6 +21,9 @@ USE_PB = CFG['use_pb']
 PB_KEY = CFG['keys']['pushbullet']
 LOG_FILE = '[{}] GBFDriver.log'.format(strftime('%m-%d %H%M'))
 
+
+class game_state(object):
+    pass
 
 def log(message):
     """Prints to console and outputs to log file"""
@@ -117,10 +117,9 @@ def wait_for_page_load(polling_rate=0.1):
     """Wait for the document state to be ready and for jQuery to return 0 active connections.
     Returns True if page is loaded and False if it timed out after waiting 5 seconds.
     If there's a need for speed :tm:, set polling_rate to 0"""
-    counter = 0
     start_time = time()
+    log('Waiting for page load')
     while (time() - start_time) < 5:
-        counter += 1
         try:
             if GBF.execute_script('return document.readyState==="complete"'):
                 return True
@@ -153,7 +152,7 @@ def random_click(ele, var_x, var_y):
     while not clicked:
         actions = ActionChains(GBF)
         actions.move_to_element(ele).move_by_offset(var_x, var_y).click_and_hold().perform()
-        sleep(uniform(0.05, 0.075))
+        sleep(uniform(0.070, 0.085))
         actions.release().perform()
         clicked = True
 
@@ -291,7 +290,8 @@ def do_summon(num):
     log('Using summon number {}'.format(num))
     wait_until_css('.quick-summon')
     # Hardcoded last summon
-    clicker(r'//*[@id="wrapper"]/div[3]/div[2]/div[9]/div[11]/div[6]', variance=0.2)
+    clicker(r'//*[@id="wrapper"]/div[3]/div[2]/div[9]/div[11]/div[6]', variance=0)
+    sleep(0.3)
 
 
 def ougi_check():
@@ -310,7 +310,7 @@ def set_ougi(ougi):
 
 
 def do_attack(auto=False, ougi=False):
-    #TODO: press next if it appears 
+    # TODO: press next if it appears 
     if not ele_check('.btn-attack-start.display-on'):
         log('Unable to attack!')
         return False
@@ -386,19 +386,26 @@ def wait_for_skill_queue():
 
 
 def wait_for_ready():
-    ready_status = False
+    clear_status = False
     # TODO: check for next
     try:
-        ready_status = GBF.execute_script('return stage.gGameStatus.clear')
+        clear_status = GBF.execute_script('return stage.gGameStatus.clear')
     except WebDriverException:
         log('Failed to retrieve stage.gGameStatus')
-    if ready_status:
+    if clear_status:
+        log('Clear status detected')
+        GBF.refresh()
         return False
-    elif wait_until_css('.btn-attack-start.display-on', maxwait=0.2):
+    if ele_check('.btn-result'):
+        log('Next button found')
+        GBF.refresh()
+        return False
+    elif wait_until_css('.btn-attack-start.display-on', maxwait=0.5):
         log('Ready!')
         return True
     elif 'http://game.granbluefantasy.jp/#raid_multi/' not in GBF.current_url:
         log('We seem to have exited the raid page while waiting for ready')
+
     return False
 
 
@@ -410,6 +417,7 @@ def results_page(homepage, target, rounds):
     wait_until_css('.btn-usual-ok', maxwait=1)
     load_page(homepage, target, ignore_url=True)
     rounds += 1
+    log('Rounds completed: {}'.format(rounds))
     return rounds
 
 
@@ -423,9 +431,9 @@ def raid_battle():
         do_summon(5)
     else:
         do_skill(0, 0)
-    #if not wait_for_skill_queue():
+    # if not wait_for_skill_queue():
     #    return
-    #if not do_attack():
+    # if not do_attack():
     #    return
     GBF.refresh()
 
@@ -684,6 +692,7 @@ def task_loop():
     while True:
         wait_for_page_load()
         cur_url = GBF.current_url
+        log("URL: {}".format(cur_url))
         if 'http://game.granbluefantasy.jp/#coopraid' in cur_url:
             coop_lobby()
             popup_check()  # Checks for CAPTCHAs and weird stuff after we hit the start button
@@ -749,6 +758,7 @@ if __name__ == '__main__':
     ARGS = parser.parse_args()
 
     GBF = setup_driver_instance()
+    STATE = game_state()
     load_page('http://game.granbluefantasy.jp/#mypage', ignore_url=True)
     set_viewport_size(GBF, 400, 600)
     if ARGS.debug:

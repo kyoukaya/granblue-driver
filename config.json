@@ -4,12 +4,12 @@
     "chrome_binary": ".\\chrome-win32\\chrome.exe",
     "webdriver_binary": ".\\chromedriver.exe",
     "keys": {
-        "pushbullet": "o.eo3Jg6tnkrpRCwXw3ak8ueXbwruawZRF",
+        "pushbullet": "o.",
         "twitter":{
-            "consumer_key": "fHCDZNxUmaqkVHhruUCOA",
-            "consumer_secret": "rJi287MYChQGskx0kbmij0qtZvEMHyKAF1tVlDqYf3k",
-            "access_token": "1353704953-IhrJtdDZsOwgeP0oOtptMEEZZYZR1rXNd73eq97",
-            "access_token_secret": "FWdLYqlPuhO26ogvuGbzFCBzKLBo8steXfyuHUDRDd4z4"
+            "consumer_key": "",
+            "consumer_secret": "",
+            "access_token": "",
+            "access_token_secret": ""
         }
     },
     "tasklist":[

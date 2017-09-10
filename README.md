@@ -1,6 +1,15 @@
-Window size setting must be set to **small** in game settings
+# granblue-driver
+Things are very messy, rewriting things on the side.
 
- See slime.bat for an example. Needs viramate for hotkeys because I'm lazy.
+Window size setting must be set to **small** in game settings. Needs viramate for hotkeys and hosting last hosted coop quest because I'm lazy.
+
+# Usage
+* python gbf.py [profile_name] [options]
+* The script will pause upon starting up. Hit enter to unpause when the coop room is all set up and summons are picked.
+
+# Flags
+Temp
+* --hostslime, --leechslime, --debug (start script in interactive mode)
 
 # Installation
 * pip install requirements.txt
