@@ -8,6 +8,7 @@ from time import sleep, strftime, time
 from pushbullet import InvalidKeyError, Pushbullet
 
 from selenium import webdriver
+from seleniumrequests import Chrome
 from selenium.common.exceptions import *
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
@@ -15,21 +16,25 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
+
 CFG = json.load(open('config.json', 'r', encoding='utf-8'))
 HOTKEYS = CFG['viramate_hotkeys']
 USE_PB = CFG['use_pb']
 PB_KEY = CFG['keys']['pushbullet']
 LOG_FILE = '[{}] GBFDriver.log'.format(strftime('%m-%d %H%M'))
+UID = 100
 
 
 class game_state(object):
-    pass
+    def __init__(self):
+        self.start_time = time()
+
 
 def log(message):
     """Prints to console and outputs to log file"""
     try:
-        with open('.\\logs\\'+LOG_FILE, 'a', encoding='utf-8', newline='') as fout:
-            message = '[{}] {}'.format(strftime('%a %H:%M:%S'), message)
+        with open('.\\logs\\' + LOG_FILE, 'a', encoding='utf-8', newline='') as fout:
+            message = '[{} {}] {}'.format(strftime('%a %H:%M:%S'), ARGS.profile, message)
             print(message)
             fout.write(message + '\n')
     except FileNotFoundError:
@@ -56,10 +61,10 @@ def setup_driver_instance():
 
     # Default to installed chrome binary if custom binary does not exist
     try:
-        gbf = webdriver.Chrome(executable_path='.\\chromedriver.exe', chrome_options=options)
+        gbf = Chrome(executable_path='.\\chromedriver.exe', chrome_options=options)
     except WebDriverException:
         options.binary_location = ''
-        gbf = webdriver.Chrome(executable_path='.\\chromedriver.exe', chrome_options=options)
+        gbf = Chrome(executable_path='.\\chromedriver.exe', chrome_options=options)
     return gbf
 
 
@@ -130,10 +135,10 @@ def wait_for_page_load(polling_rate=0.1):
                 return True
         except WebDriverException as message:
             if 'jQuery is not defined' in str(message):
-                # log('Attempted to use a jQuery method without the lib being loaded lol..')
+                log('Attempted to use a jQuery method without the lib being loaded lol..')
                 continue
             else:
-                log('Something is up yo...')
+                log(message)
                 raise
         finally:
             sleep(polling_rate)
@@ -149,7 +154,7 @@ def load_page(url, wait_for='', ignore_url=False):
         alert_operator(message)
         log(message)
     if wait_for != '':
-        wait_until_css(wait_for, maxwait=1)
+        wait_until_css(wait_for, maxwait=0.5)
 
 
 def random_click(ele, var_x, var_y):
@@ -165,8 +170,8 @@ def random_click(ele, var_x, var_y):
 def js_click(ele, var_x, var_y):
     """In the off case we might not want to use the default way of clicking things"""
     ele_loc = ele.location
-    ele_loc_x = ele_loc['x']+var_x
-    ele_loc_y = ele_loc['y']+var_y
+    ele_loc_x = ele_loc['x'] + var_x
+    ele_loc_y = ele_loc['y'] + var_y
     script = 'document.elementFromPoint({},{}).click();'.format(ele_loc_x, ele_loc_y)
     GBF.execute_script(script)
 
@@ -176,7 +181,7 @@ def clicker(ele, delay=0.1, kind='random', variance=0.2):
     and clicks on it. Returns True if clicked and False if not clicked."""
     try:
         if isinstance(ele, str) and ele_check(ele):
-            log('Clicking on \'{}\'. Method: {}, variance: {}'.format(ele, kind, variance))
+            # log('Clicking on \'{}\'. Method: {}, variance: {}'.format(ele, kind, variance))
             if ele[0] == '/':
                 ele = GBF.find_element_by_xpath(ele)
             else:
@@ -193,11 +198,11 @@ def clicker(ele, delay=0.1, kind='random', variance=0.2):
         sleep(delay)
     try:
         # Variance routine
-        size = {k: int(ele.size[k]*variance) for k in ele.size}
+        size = {k: int(ele.size[k] * variance) for k in ele.size}
         var_x = randint(0 - size['width'], size['width'])
         var_y = randint(0 - size['height'], size['height'])
         if size['width'] < 3 or size['height'] < 3:
-            log('WARNING: Low variance expected, button is too small\n' +
+            log('WARNING: Low variance; ' +
                 f'{ele.size}, {var_x}, {var_y}')
 
         # Handle potential errors that arise from non-existent elements
@@ -272,8 +277,8 @@ def do_skill(character, skill, target=-1):
 
 
 def summon_check():
-    available = []
     """Returns list of available summons"""
+    available = []
     if not ele_check('.quick-summon'):
         log('Couldn\'t find summons')
         return available
@@ -314,14 +319,14 @@ def set_ougi(ougi):
         sleep(0.2)
 
 
-def do_attack(auto=False, ougi=False):
-    # TODO: press next if it appears 
+def do_attack(auto=False):
+    # TODO: press next if it appears
     if not ele_check('.btn-attack-start.display-on'):
         log('Unable to attack!')
         return False
-    if ougi != ougi_check():
-        set_ougi(ougi)
-    log('Attacking. Auto={}, Ougi={}'.format(auto, ougi))
+    #if ougi != ougi_check():
+    #   set_ougi(ougi)
+    log('Attacking. Auto={}'.format(auto))
     clicker('.btn-attack-start.display-on', variance=.25)
     if auto:
         if wait_until_css('.btn-auto'):
@@ -337,7 +342,7 @@ def wait_until_url(url):
     log('Somehow we\'re at {}'.format(GBF.current_url))
 
 
-def popup_check():
+def popup_check(rounds=None):
     """Detects and deals with popups"""
     try:
         ele = GBF.find_element_by_css_selector('.prt-popup-header')
@@ -357,6 +362,22 @@ def popup_check():
         # idea
         alert_operator('CAPTCHA detected! Help!')
         return
+    elif text == 'Error':
+        log('Error message dismissed with clicker')
+        clicker('.btn-usual-ok')
+    elif text == 'Room' and rounds is not None:
+        time_elapsed = time() - STATE.start_time
+        alert_operator('\
+Co-op room ended.\n\
+Rounds completed: {}\n\
+Time elapsed: {:.0f} mins {:.2f} seconds\n\
+Rounds per minute: {:.2f}\n\
+ENTER to close...'.format(
+            rounds, time_elapsed // 60, time_elapsed % 60, rounds / time_elapsed * 60
+        ), pause=False)
+        input()
+        GBF.close()
+        quit()
     else:
         # if ele_check('.btn-usual-cancel'):
         log('"{}" popup detected and dismissed.'.format(text))
@@ -364,14 +385,62 @@ def popup_check():
         actions.send_keys('`').send_keys(Keys.SPACE).perform()  # Viramate dependency
 
 
-def check_bp():
-    wait_until_css('prt-user-bp-value')
-    bp = GBF.find_elements_by_class_name('prt-user-bp-value')[0]
-    num = bp.get_attribute('title')
-    return int(num)
+def post_json(url):
+    '''TODO'''
+    # Mimic headers and params of an actual request as closely as possible
+    headers = {
+        'Accept': 'application/json, text/javascript, */*; q=0.01',
+        'Accept-Encoding': 'gzip, deflate, sdch',
+    }
+    time_now = time()
+    time_and_then_a_bit = time_now + 900 + int(uniform(-200, 200))
+    params = {
+        '_': str(time_now),
+        't': str(time_and_then_a_bit),
+        'uid': '5769898'
+    }
+    response = GBF.request('POST', url, headers=headers, params=params)
+    return response
 
+
+def get_json(url):
+    '''TODO'''
+    # Mimic headers and params of an actual request as closely as possible
+    headers = {
+        'Accept': 'application/json, text/javascript, */*; q=0.01',
+        'Accept-Encoding': 'gzip, deflate, sdch',
+    }
+    time_now = time()
+    time_and_then_a_bit = time_now + 900 + int(uniform(-200, 200))
+    params = {
+        '_': str(time_now),
+        't': str(time_and_then_a_bit),
+        'uid': '5769898'
+    }
+    response = GBF.request('GET', url, headers=headers, params=params)
+    return response.json()
+
+
+def check_dimension_halo():
+    log('Checking for dimension halo...')
+    response = get_json('http://game.granbluefantasy.jp/rest/quest/extra_normal_quest')
+    quests = response['quest_list']['group']
+    for id in quests:
+        if quests[id]['title'] == 'Dimension Halo':
+            return True
+    return False
+
+
+def check_user_status():
+    response = get_json('http://game.granbluefantasy.jp/user/status')['status']
+    status = {
+        'ap': response['ap'],
+        'bp': response['bp']
+    }
+    return status
 
 def check_health():
+    # TODO
     log('Checking health')
     characters = GBF.find_elements_by_class_name('prt-gauge-hp-inner')
     thp = []
@@ -394,7 +463,7 @@ def wait_for_ready():
     clear_status = False
     # TODO: check for next
     try:
-        clear_status = GBF.execute_script('return stage.gGameStatus.clear')
+        clear_status = GBF.execute_script('return stage.gGameStatus.finish')
     except WebDriverException:
         log('Failed to retrieve stage.gGameStatus')
     if clear_status:
@@ -405,12 +474,33 @@ def wait_for_ready():
         log('Next button found')
         GBF.refresh()
         return False
-    elif wait_until_css('.btn-attack-start.display-on', maxwait=0.5):
+    elif wait_until_css('.btn-attack-start.display-on', maxwait=1):
         log('Ready!')
         return True
     elif 'http://game.granbluefantasy.jp/#raid_multi/' not in GBF.current_url:
         log('We seem to have exited the raid page while waiting for ready')
 
+    return False
+
+
+def select_summon():
+    wait_for_page_load()
+    summon_url = 'http://game.granbluefantasy.jp/#quest/supporter'
+    if summon_url not in GBF.current_url:
+        log('Attempted to select summon but we are in "{}"'.format(GBF.current_url))
+        return False
+    wait_until_css('.icon-supporter-type-f')
+    first_summon = '//*[@id="cnt-quest"]/div[2]/div[10]/div[1]/div[4]'
+    clicker(first_summon, variance=0.1)
+    # We might get hit with a captcha after clicking this so we'll
+    # try to catch that.
+    for attempt in range(3):
+        log('Attempting summon, try {}'.format(attempt + 1))
+        if ele_check('.btn-usual-ok.se-quest-start.onm-tc-gbf', 1):
+            clicker('.btn-usual-ok.se-quest-start.onm-tc-gbf')
+            sleep(1.5)
+            return True
+        popup_check()
     return False
 
 
@@ -426,16 +516,36 @@ def results_page(homepage, target, rounds):
     return rounds
 
 
+def ah_battle():
+    if not wait_for_ready():
+        return False
+    log('In battle page')
+    try:
+        turns = GBF.execute_script('return stage.gGameStatus.turn')
+        attacking = GBF.execute_script('return stage.gGameStatus.attacking === 1')
+    except WebDriverException:
+        pass
+    do_attack()
+    sleep(0.5)
+    GBF.get('http://game.granbluefantasy.jp/#quest/supporter/510031/5')
+    sleep(0.5)
+
+
 def raid_battle():
     """Handles what we do in a fight"""
     # TODO: parse Stage
     if not wait_for_ready():
         return
-    log('In battle page')
+    try:
+        turns = GBF.execute_script('return stage.gGameStatus.turn')
+        attacking = GBF.execute_script('return stage.gGameStatus.attacking === 1')
+    except WebDriverException:
+        pass
     if ARGS.hostslime:
         do_summon(5)
     else:
-        do_skill(0, 0)
+        sleep(0.2)
+        do_skill(3, 2)
     # if not wait_for_skill_queue():
     #    return
     # if not do_attack():
@@ -634,8 +744,6 @@ def play_poker():
             sleep(2)
             doubleup_card_1 = GBF.execute_script(
                 "return exportRoot.doubleup_card_1[1]")
-            high = GBF.find_elements_by_class_name("prt-high-shine")[0] 
-            low = GBF.find_elements_by_class_name("prt-low-shine")[0]
             high_array = ['2', '3', '4', '5', '6', '7']
             low_array = ['8', '9', '10', '11', '12', '13', '1']
 
@@ -646,8 +754,6 @@ def play_poker():
                 print('card is %s, choosing low !' % doubleup_card_1)
                 clicker('//*[@id="wrapper"]/div[3]/div[2]/div[8]/div[5]')
 
-            doubleup_card_2 = GBF.execute_script(
-                "return exportRoot.doubleup_card_1[1]")
             # check if fail...
             sleep(3)
             # check prt-yes, if it has display: none that means we have no
@@ -700,11 +806,39 @@ def task_loop():
         log("URL: {}".format(cur_url))
         if 'http://game.granbluefantasy.jp/#coopraid' in cur_url:
             coop_lobby()
-            popup_check()  # Checks for CAPTCHAs and weird stuff after we hit the start button
+            popup_check(rounds)  # Checks for CAPTCHAs and weird stuff after we hit the start button
         elif 'http://game.granbluefantasy.jp/#raid_multi' in cur_url:
             raid_battle()
         elif 'http://game.granbluefantasy.jp/#result_multi' in cur_url:
             rounds = results_page(homepage, target, rounds)
+        elif 'http://game.granbluefantasy.jp/#top' in cur_url:
+            top_page()
+        elif 'http://game.granbluefantasy.jp/#authentication' in cur_url:
+            authentication_page()
+        elif 'loginbonus' in cur_url:
+            clicker('.cjs-login')
+        else:
+            load_page(homepage, target, ignore_url=True)
+
+
+def ah_loop():
+    """Takes a task from the dispatcher and carries it out"""
+
+    homepage = 'http://game.granbluefantasy.jp/#quest/supporter/510031/5'
+    target = '.prt-head-current'
+    rounds = 0
+    while True:
+        wait_for_page_load()
+        cur_url = GBF.current_url
+        log("URL: {}".format(cur_url))
+        if homepage == cur_url:
+            select_summon()
+        elif 'http://game.granbluefantasy.jp/#raid' in cur_url:
+            ah_battle()
+        elif 'http://game.granbluefantasy.jp/#result' in cur_url:
+            rounds = results_page(homepage, target, rounds)
+            if check_dimension_halo():
+                alert_operator('Dimension Halo detected!', pause=True)
         elif 'http://game.granbluefantasy.jp/#top' in cur_url:
             top_page()
         elif 'http://game.granbluefantasy.jp/#authentication' in cur_url:
@@ -772,7 +906,7 @@ if __name__ == '__main__':
     test_for_auth()
     try:
         input('Paused. Hit enter to continue...\n')
-        task_loop()
+        ah_loop()
     except Exception as exp:
         alert_operator('Fatal error', pause=False)
         raise
