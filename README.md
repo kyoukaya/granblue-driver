@@ -19,3 +19,4 @@ Temp
 # Usage
 * `python gbf.py [profile_name] [options]`
 * The script will pause upon starting up. Hit enter to unpause when the coop room is all set up and summons are picked.
+* Install viramate before unpausing if you're running for the first time. Enable hotkeys, favourite summons, and default to the favourite tab.
